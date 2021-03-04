@@ -17,16 +17,15 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Set Env
-        id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+        id: commit_info
+        run: |
+          echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
+          echo Deploying Version: $SOURCE_TAG
+        env:
+          SOURCE_TAG: ${{ steps.commit_info.outputs.tag }}
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-
-#       Probably don't need to do this but yarn wasn't
-#       wasn't working locally.
-
-      - run: npm i --global yarn
       - name: Find Yarn Cache Dir
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
@@ -50,18 +49,13 @@ jobs:
           cd resources && yarn build
           cd ../phone && yarn build
       - name: Compressing built files
-        run: tar -czf npwd-$RELEASE_VERSION.tar.gz resources/dist/ resources/html/ fxmanifest.lua config.json LICENSE
+        run: tar -czf npwd-$SOURCE_TAG.tar.gz resources/dist/ resources/html/ fxmanifest.lua config.json LICENSE
       - name: Create and deploy GitHub release
         if: ${{ !env.ACT }}
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          automatic_release_tag: 'Release ${{SOURCE_TAG}}'
           prerelease: false
-          title: 'v${{ steps.vars.outputs.tag }} of NPWD'
-          files: npwd-$RELEASE_VERSION.tar.gz
-      - name: Version Info
-        env:
-          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-        run: |
-          echo Release Version Deployed: $RELEASE_VERSION
+          title: 'v${{ SOURCE_TAG }} - New Phone Who Dis'
+          files: npwd-$SOURCE_TAG.tar.gz

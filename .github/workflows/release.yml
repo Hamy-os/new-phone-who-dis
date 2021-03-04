@@ -4,7 +4,7 @@ name: "Deploy New Release"
 on:
   push:
     tags:
-      - "v*"
+      - v[0-9]+.[0-9]+.[0-9]+
     branches:
       - ci-cd/build-release
 jobs:
@@ -54,5 +54,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: '${{env.SOURCE_TAG}}'
           prerelease: false
-          title: 'v${{ env.SOURCE_TAG }} - New Phone Who Dis'
+          title: '${{ env.SOURCE_TAG }} - New Phone Who Dis'
           files: npwd-${{env.SOURCE_TAG}}.tar.gz

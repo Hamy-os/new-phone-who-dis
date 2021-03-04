@@ -1,0 +1,67 @@
+---
+name: "Deploy New Release"
+
+on:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - ci-cd/build-release
+jobs:
+  deploy-release:
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set Env
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+#       Probably don't need to do this but yarn wasn't
+#       wasn't working locally.
+
+      - run: npm i --global yarn
+      - name: Find Yarn Cache Dir
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install deps for NUI & Game Scripts
+        run: |
+          cd phone && yarn --frozen-lockfile
+          cd ../resources && yarn --frozen-lockfile
+      - name: Testing NUI & Game Scripts
+        run: |
+          cd phone && yarn test
+          cd ../resources && yarn test
+      - name: Webpack/build NUI and Game Scripts
+        run: |
+          cd resources && yarn build
+          cd ../phone && yarn build
+      - name: Compressing built files
+        run: tar -czf npwd-$RELEASE_VERSION.tar.gz resources/dist/ resources/html/ fxmanifest.lua config.json LICENSE
+      - name: Create and deploy GitHub release
+        if: ${{ !env.ACT }}
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: 'v${{ steps.vars.outputs.tag }} of NPWD'
+          files: npwd-$RELEASE_VERSION.tar.gz
+      - name: Version Info
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo Release Version Deployed: $RELEASE_VERSION

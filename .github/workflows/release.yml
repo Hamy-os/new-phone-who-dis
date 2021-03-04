@@ -52,7 +52,7 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: 'Release ${{env.SOURCE_TAG}}'
+          automatic_release_tag: '${{env.SOURCE_TAG}}'
           prerelease: false
           title: 'v${{ env.SOURCE_TAG }} - New Phone Who Dis'
           files: npwd-${{env.SOURCE_TAG}}.tar.gz

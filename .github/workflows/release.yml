@@ -19,10 +19,7 @@ jobs:
       - name: Set Env
         id: commit_info
         run: |
-          echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
-          echo Deploying Version: $SOURCE_TAG
-        env:
-          SOURCE_TAG: ${{ steps.commit_info.outputs.tag }}
+          echo "SOURCE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
@@ -49,13 +46,13 @@ jobs:
           cd resources && yarn build
           cd ../phone && yarn build
       - name: Compressing built files
-        run: tar -czf npwd-$SOURCE_TAG.tar.gz resources/dist/ resources/html/ fxmanifest.lua config.json LICENSE
+        run: tar -czf npwd-${{env.SOURCE_TAG}}.tar.gz resources/dist/ resources/html/ fxmanifest.lua config.json LICENSE
       - name: Create and deploy GitHub release
         if: ${{ !env.ACT }}
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: 'Release ${{SOURCE_TAG}}'
+          automatic_release_tag: 'Release ${{env.SOURCE_TAG}}'
           prerelease: false
-          title: 'v${{ SOURCE_TAG }} - New Phone Who Dis'
-          files: npwd-$SOURCE_TAG.tar.gz
+          title: 'v${{ env.SOURCE_TAG }} - New Phone Who Dis'
+          files: npwd-${{env.SOURCE_TAG}}.tar.gz

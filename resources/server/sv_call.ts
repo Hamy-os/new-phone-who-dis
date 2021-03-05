@@ -1,13 +1,8 @@
 import { ESX } from './server';
 import events from '../utils/events';
-import {
-  getIdentifierByPhoneNumber,
-  usePhoneNumber,
-  getIdentifier,
-  getSource,
-} from './functions';
+import { getIdentifierByPhoneNumber, usePhoneNumber, getIdentifier, getSource } from './functions';
 
-import { getPlayerFromIdentifier } from './functions'
+import { getPlayerFromIdentifier } from './functions';
 import { ICall } from '../../phone/src/common/typings/call';
 
 import { pool } from './db';
@@ -38,6 +33,11 @@ let calls: Map<string, ICall> = new Map();
 
 onNet(events.PHONE_INITIALIZE_CALL, async (phoneNumber: string, timestamp: number) => {
   const _source = getSource();
+
+  callLogger.debug(`Initialize call event from ${_source}`, {
+    phoneNumber,
+    timestamp,
+  });
 
   const callIdentifier = uuidv4();
 
@@ -73,6 +73,9 @@ onNet(events.PHONE_INITIALIZE_CALL, async (phoneNumber: string, timestamp: numbe
 
 onNet(events.PHONE_ACCEPT_CALL, async (transmitterNumber: string) => {
   const pSource = getSource();
+  callLogger.debug(`Accept call event from ${pSource}`, {
+    transmitterNumber,
+  });
   try {
     const currentCall = calls.get(transmitterNumber);
     const channelId = pSource;
@@ -118,6 +121,10 @@ onNet(events.PHONE_CALL_REJECTED, async (transmitterNumber: string, timestamp: n
 
 onNet(events.PHONE_END_CALL, async (transmitterNumber: string, timestamp: number) => {
   const pSource = getSource();
+  callLogger.debug(`End call event from ${pSource}`, {
+    transmitterNumber,
+    timestamp,
+  });
   try {
     const currentCall = calls.get(transmitterNumber);
     const endTime = timestamp / 1000;
@@ -143,6 +150,7 @@ onNet(events.PHONE_END_CALL, async (transmitterNumber: string, timestamp: number
 
 onNet(events.PHONE_CALL_FETCH_CALLS, async () => {
   const _source = getSource();
+  callLogger.debug(`Fetch event from ${_source}`);
   try {
     const identifier = await getIdentifier(_source);
     const phoneNumber = await usePhoneNumber(identifier);

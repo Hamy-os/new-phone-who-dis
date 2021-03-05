@@ -271,6 +271,7 @@ async function doesReportExist(tweetId: number, profileId: number): Promise<bool
 
 onNet(events.TWITTER_GET_OR_CREATE_PROFILE, async () => {
   const _source = getSource();
+  twitterLogger.debug(`Get or create profile from ${_source}`);
   try {
     const identifier = getIdentifier(_source);
     const profile = await getOrCreateProfile(identifier);
@@ -285,6 +286,9 @@ onNet(events.TWITTER_GET_OR_CREATE_PROFILE, async () => {
 
 onNet(events.TWITTER_UPDATE_PROFILE, async (profile: Profile) => {
   const _source = getSource();
+  twitterLogger.debug(`Update profile event from ${_source}`, {
+    profile,
+  });
   try {
     const identifier = getIdentifier(_source);
     await updateProfile(identifier, profile);
@@ -305,6 +309,7 @@ onNet(events.TWITTER_UPDATE_PROFILE, async (profile: Profile) => {
 
 onNet(events.TWITTER_FETCH_TWEETS, async () => {
   const _source = getSource();
+  twitterLogger.debug(`Fetch tweets triggered from ${_source}`);
   try {
     const identifier = getIdentifier(_source);
     const profile = await getProfile(identifier);
@@ -320,6 +325,7 @@ onNet(events.TWITTER_FETCH_TWEETS, async () => {
 
 onNet(events.TWITTER_FETCH_TWEETS_FILTERED, async (searchValue: string) => {
   const _source = getSource();
+  twitterLogger.debug(`Filtering tweets for ${searchValue} from ${_source}`);
   try {
     const identifier = getIdentifier(_source);
     const profile = await getProfile(identifier);
@@ -335,6 +341,9 @@ onNet(events.TWITTER_FETCH_TWEETS_FILTERED, async (searchValue: string) => {
 
 onNet(events.TWITTER_CREATE_TWEET, async (tweet: Tweet) => {
   const _source = getSource();
+  twitterLogger.debug(`Received tweet create event from ${_source}`, {
+    tweet,
+  });
   try {
     const identifier = getIdentifier(_source);
     const createdTweet = await createTweet(identifier, tweet);
@@ -352,6 +361,7 @@ onNet(events.TWITTER_CREATE_TWEET, async (tweet: Tweet) => {
 
 onNet(events.TWITTER_DELETE_TWEET, async (tweetId: number) => {
   const _source = getSource();
+  twitterLogger.debug(`Received delete event for ${tweetId} from ${_source}`);
   try {
     const identifier = getIdentifier(_source);
     await deleteTweet(identifier, tweetId);
@@ -367,6 +377,7 @@ onNet(events.TWITTER_DELETE_TWEET, async (tweetId: number) => {
 
 onNet(events.TWITTER_TOGGLE_LIKE, async (tweetId: number) => {
   const _source = getSource();
+  twitterLogger.debug(`Received toggle like event for ${tweetId} from ${_source}`);
   try {
     const identifier = getIdentifier(_source);
     const profile = await getOrCreateProfile(identifier);
@@ -387,6 +398,7 @@ onNet(events.TWITTER_TOGGLE_LIKE, async (tweetId: number) => {
 
 onNet(events.TWITTER_REPORT, async (tweetId: number) => {
   const _source = getSource();
+  twitterLogger.debug(`Received toggle report event for ${tweetId} from ${_source}`);
   try {
     const identifier = getIdentifier(_source);
     const profile = await getProfile(identifier);
@@ -394,7 +406,9 @@ onNet(events.TWITTER_REPORT, async (tweetId: number) => {
 
     const reportExists = await doesReportExist(tweet.id, profile.id);
     if (reportExists) {
-      twitterLogger.warn('This profile has already reported this tweet');
+      twitterLogger.warn(`This profile has already reported this tweet (${tweetId})`, {
+        source: _source,
+      });
     } else {
       await createTweetReport(tweet.id, profile.id);
       await reportTweetToDiscord(tweet, profile);

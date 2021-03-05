@@ -55,6 +55,7 @@ async function deleteContact(contact: ContactId, identifier: string): Promise<an
 
 onNet(events.CONTACTS_GET_CONTACTS, async () => {
   const _source = getSource();
+  contactsLogger.debug(`Fetch event from ${_source}`);
   try {
     const _identifier = getIdentifier(_source);
 
@@ -67,6 +68,11 @@ onNet(events.CONTACTS_GET_CONTACTS, async () => {
 
 onNet(events.CONTACTS_ADD_CONTACT, async (number: string, display: string, avatar: string) => {
   const _source = getSource();
+  contactsLogger.debug(`Add event from ${_source}`, {
+    number,
+    display,
+    avatar,
+  });
   try {
     const _identifier = getIdentifier(_source);
     await addContact(_identifier, number, display, avatar);
@@ -88,6 +94,7 @@ onNet(events.CONTACTS_ADD_CONTACT, async (number: string, display: string, avata
 
 onNet(events.CONTACTS_UPDATE_CONTACT, async (contact: Contacts) => {
   const _source = getSource();
+  contactsLogger.debug(`Update event from ${_source}, contact: ${contact.id}`);
   try {
     const _identifier = ESX.GetPlayerFromId(_source).getIdentifier();
     await updateContact(contact, _identifier);
@@ -112,6 +119,7 @@ onNet(events.CONTACTS_UPDATE_CONTACT, async (contact: Contacts) => {
 
 onNet(events.CONTACTS_DELETE_CONTACT, async (contact: ContactId) => {
   const _source = getSource();
+  contactsLogger.debug(`Delete event from ${_source}, contact: ${contact.id}`);
   try {
     const _identifier = await getIdentifier(_source);
     await deleteContact(contact, _identifier);

@@ -37,6 +37,7 @@ async function addListing(
 
 onNet(events.SELLOUT_FETCH_LISTING, async () => {
   const _source = getSource();
+  selloutLogger.debug(`Fetch event triggered from ${_source}`);
   try {
     const listings = await fetchAllListings();
     emitNet(events.SELLOUT_SEND_LISTING, _source, listings);
@@ -49,6 +50,9 @@ onNet(events.SELLOUT_FETCH_LISTING, async () => {
 
 onNet(events.SELLOUT_ADD_LISTING, async (listing: MarketplaceListing) => {
   const _source = getSource();
+  selloutLogger.debug(`Add listing event triggered from ${_source}`, {
+    listing,
+  });
   try {
     const xPlayer = ESX.GetPlayerFromId(_source);
     const _identifier = xPlayer.getIdentifier();

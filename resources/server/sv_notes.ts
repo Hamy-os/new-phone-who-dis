@@ -29,6 +29,9 @@ async function updateNote(note: Note, identifier: string): Promise<any> {
 
 onNet(events.NOTE_ADD_NOTE, async (note: Note) => {
   const pSource = getSource();
+  notesLogger.debug(`Add event from ${pSource}`, {
+    note,
+  });
   try {
     const _identifier = getIdentifier(pSource);
     await addNote(_identifier, note);
@@ -50,6 +53,7 @@ onNet(events.NOTE_ADD_NOTE, async (note: Note) => {
 
 onNet(events.NOTE_FETCH_ALL_NOTES, async () => {
   const pSource = getSource();
+  notesLogger.debug(`Fetch event from ${pSource}`);
   try {
     const _identifier = await getIdentifier(pSource);
     const notes = await fetchAllNotes(_identifier);
@@ -63,6 +67,7 @@ onNet(events.NOTE_FETCH_ALL_NOTES, async () => {
 
 onNet(events.NOTE_DELETE_NOTE, async (noteId: NoteId) => {
   const pSource = getSource();
+  notesLogger.debug(`Delete event from ${pSource} for ${noteId.id}`);
   try {
     const _identifier = getIdentifier(pSource);
     await deleteNote(noteId.id, _identifier);
@@ -72,8 +77,9 @@ onNet(events.NOTE_DELETE_NOTE, async (noteId: NoteId) => {
       type: 'success',
     });
   } catch (e) {
-    const pSource = (global as any).source;
-    notesLogger.error(`Failed to delete note, ${e.message}`);
+    notesLogger.error(`Failed to delete note, ${e.message}`, {
+      source: pSource,
+    });
     emitNet(events.NOTE_ACTION_RESULT, pSource, {
       message: 'NOTES_DELETE_FAILED',
       type: 'error',
@@ -83,6 +89,7 @@ onNet(events.NOTE_DELETE_NOTE, async (noteId: NoteId) => {
 
 onNet(events.NOTE_UPDATE_NOTE, async (note: Note) => {
   const pSource = getSource();
+  notesLogger.debug(`Update note event from ${pSource}, note: ${note.id}`);
   try {
     const _identifier = await getIdentifier(pSource);
     await updateNote(note, _identifier);
@@ -93,11 +100,10 @@ onNet(events.NOTE_UPDATE_NOTE, async (note: Note) => {
       type: 'success',
     });
   } catch (e) {
-    const pSource = (global as any).source;
-    emitNet(events.NOTE_UPDATE_NOTE_FAILURE, pSource);
     notesLogger.error(`Failed to update note, ${e.message}`, {
       source: pSource,
     });
+    emitNet(events.NOTE_UPDATE_NOTE_FAILURE, pSource);
     emitNet(events.NOTE_ACTION_RESULT, pSource, {
       message: 'NOTES_UPDATE_FAILED',
       type: 'error',

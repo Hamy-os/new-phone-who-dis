@@ -389,6 +389,7 @@ async function setMessageRead(groupId: string, identifier: string) {
 
 onNet(events.MESSAGES_FETCH_MESSAGE_GROUPS, async () => {
   const _source = getSource();
+  messageLogger.debug(`Fetch message groups event from ${_source}`);
   try {
     const identifier = getIdentifier(_source);
     const messageGroups = await getFormattedMessageGroups(identifier);
@@ -403,6 +404,10 @@ onNet(
   events.MESSAGES_CREATE_MESSAGE_GROUP,
   async (phoneNumbers: string[], label: string = null) => {
     const _source = getSource();
+    messageLogger.debug(`Create message group event from ${_source}`, {
+      phoneNumbers,
+      label,
+    });
     try {
       const _identifier = await getIdentifier(_source);
       const result = await createMessageGroupsFromPhoneNumbers(_identifier, phoneNumbers, label);
@@ -462,6 +467,7 @@ onNet(
 
 onNet(events.MESSAGES_FETCH_MESSAGES, async (groupId: string) => {
   const _source = getSource();
+  messageLogger.debug(`Fetch messages event from ${_source} for group: ${groupId}`);
   try {
     const _identifier = await getIdentifier(_source);
     const messages = await getMessages(_identifier, groupId);
@@ -476,6 +482,11 @@ onNet(events.MESSAGES_FETCH_MESSAGES, async (groupId: string) => {
 
 onNet(events.MESSAGES_SEND_MESSAGE, async (groupId: string, message: string, groupName: string) => {
   const _source = getSource();
+  messageLogger.debug(`Send message event from ${_source}`, {
+    groupId,
+    message,
+    groupName,
+  });
   try {
     const _identifier = getIdentifier(_source);
     const userParticipants = getIdentifiersFromParticipants(groupId);
@@ -516,6 +527,7 @@ onNet(events.MESSAGES_SEND_MESSAGE, async (groupId: string, message: string, gro
 
 onNet(events.MESSAGES_SET_MESSAGE_READ, async (groupId: string) => {
   const pSource = getSource();
+  messageLogger.debug(`Set message read event from ${groupId} for group: ${groupId}`);
   try {
     const identifier = getIdentifier(pSource);
     await setMessageRead(groupId, identifier);

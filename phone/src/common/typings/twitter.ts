@@ -1,3 +1,6 @@
+export type SETTING_MENTIONS = 'mentions';
+export type SETTINGS_ALL_TWEETS = 'all';
+
 export interface Tweet {
   id: number;
   profile_name?: string;
